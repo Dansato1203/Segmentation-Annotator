@@ -11,6 +11,7 @@
 - Python 3.7.11
 - OpenCV 4.3.0
 - PIL 8.1.0
+- numpy 1.19.5
 
 ## Usage
 1. ```script```ディレクトリ内にある```main.py```を実行してください．  
