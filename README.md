@@ -1,5 +1,9 @@
 # color_base_annotator
 特定の色を抽出してセマンティックセグメンテーション用の訓練データを作成するツールです．  
+### Example: Green
+<div align="center">
+<img src=https://github.com/Dansato1203/images/blob/master/color_base_annotator/annotation_example.png width=700px/>  
+</div>
 
 ## 動作環境
 以下の環境で動作を確認しています．  
