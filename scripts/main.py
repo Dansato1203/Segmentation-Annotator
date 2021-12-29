@@ -1,18 +1,19 @@
 #! /user/bin/env python3
 
 import cv2
-from PIL import Image, ImageDraw
-
 import numpy as np
 import os
 import sys
-import mouse_event
 import glob
 
+import mouse_event
+import image_process
+
 def main():
-	print("input your image dir : ")
+	print("input your image dir : ",end='')
 	input_files_dir = input()
 	files = sorted(glob.glob(input_files_dir + "/*.jpg"))
+	ip = image_process.ColorBase_Annotator(color="green")
 	i = 0
 	click_points = []
 	draw = False
@@ -22,6 +23,8 @@ def main():
 		img = cv2.imread(files[i])
 		print(files[i])
 		hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+		color_mode = ip.return_hsv_param()
+		extract_img = ip.color_extraction(img, hsv_img, **color_mode)
 		cv2.imshow(window_name, extract_img)
 
 		cv2.imshow("origin_img", img)
@@ -39,6 +42,7 @@ def main():
 		cv2.createTrackbar("mode_change", window_name, 0, 1, ip.callback_func)
 
 		while True:
+			extract_img = ip.color_extraction(img, hsv_img, **color_mode)
 
 			[cv2.circle(extract_img, point, 10, (0,0,0), thickness=-1) for point in click_points]
 			cv2.imshow(window_name, extract_img)
@@ -61,7 +65,7 @@ def main():
 				if draw:
 					click_points.append(mouseData.getPos())
 			if mouseData.getEvent() == cv2.EVENT_RBUTTONDOWN:
-				extract_img = reset_drawing(img, extract_img, mouseData.getPos()[0], mouseData.getPos()[1], 10)
+				extract_img = ip.reset_drawing(img, extract_img, mouseData.getPos()[0], mouseData.getPos()[1], 10)
 
 			k = cv2.waitKey(1)
 			if k == ord('n'):
