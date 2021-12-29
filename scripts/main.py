@@ -13,7 +13,7 @@ def main():
 	print("input your image dir : ",end='')
 	input_files_dir = input()
 	files = sorted(glob.glob(input_files_dir + "/*.jpg"))
-	ip = image_process.ColorBase_Annotator(color="green")
+	ip = image_process.ColorBase_Annotator(color="none")
 	i = 0
 	rad = 10
 	circle_rad = []

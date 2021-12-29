@@ -9,6 +9,7 @@ class ColorBase_Annotator:
 	def __init__(self, color):
 		self.color_mode = color
 
+		self.none_hsv = {"h_min": 0, "h_max": 180, "s_min": 0, "s_max": 255, "v_min": 0, "v_max": 255}
 		self.green_hsv = {"h_min": 44, "h_max": 91, "s_min": 98, "s_max": 255, "v_min": 0, "v_max": 255}
 		self.white_hsv = {"h_min": 0, "h_max": 180, "s_min": 0, "s_max": 45, "v_min": 100, "v_max": 255}
 
@@ -16,7 +17,9 @@ class ColorBase_Annotator:
 		pass
 
 	def return_hsv_param(self):
-		if self.color_mode == "green":
+		if self.color_mode == "none":
+			return self.none_hsv
+		elif self.color_mode == "green":
 			return self.green_hsv
 		elif self.color_mode == "white":
 			return self.white_hsv
