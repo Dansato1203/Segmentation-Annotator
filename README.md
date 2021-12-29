@@ -49,5 +49,5 @@ input your image dir : {YOUR IMAGE_DIR}
 <br />  
 
 ## LICENSE
-Copyright (c) 2021 Dan Sato
+Copyright (c) 2021 Dan Sato  
 This repository is licensed under The MIT License, see [LICENSE](https://github.com/Dansato1203/color_base_annotator/blob/master/LICENSE).
