@@ -5,14 +5,14 @@ import numpy as np
 import os
 import sys
 import glob
-import image_process
+import colorExtraction
 import mouse_event
 
 def main():
 	print("input your image dir : ", end='')
 	input_files_dir = input()
 	files = sorted(glob.glob(input_files_dir + "/*.jpg"))
-	ip = image_process.ColorBase_Annotator()
+	ip = colorExtraction.ColorExtraction()
 	i = 0
 	rad = 10
 	circle_rad = []
