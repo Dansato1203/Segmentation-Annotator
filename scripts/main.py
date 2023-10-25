@@ -6,7 +6,7 @@ import os
 import sys
 import glob
 import colorExtraction
-import mouse_event
+import mouseEvent
 
 def main():
 	print("input your image dir : ", end='')
@@ -32,7 +32,7 @@ def main():
 		cv2.imshow(window_name, extract_img)
 		cv2.imshow("origin_img", img)
 
-		mouseData = mouse_event.MouseEvent(window_name)
+		mouseData = mouseEvent.MouseEvent(window_name)
 
 		# トラックバーの設定
 		cv2.createTrackbar("Hue_min", window_name, color_mode["h_min"], 180, ip.callback_func)
@@ -85,6 +85,27 @@ def main():
 			elif k == ord('z'):
 				click_points.pop()
 				circle_rad.pop()
+			elif k == ord('s'):
+				save_mode = True
+				load_mode = False
+			elif k == ord('l'):
+				load_mode = True
+				save_mode = False
+			elif ord('0') <= k <= ord('9') and (save_mode or load_mode):  # 数字キーが押された場合
+				key_num = chr(k)
+				if save_mode:
+					ip.save_color(key_num)
+					save_mode = False
+				elif load_mode:
+					ip.load_color(key_num)
+					# トラックバーの位置を更新
+					cv2.setTrackbarPos("Hue_min", window_name, ip.color_param["h_min"])
+					cv2.setTrackbarPos("Hue_max", window_name, ip.color_param["h_max"])
+					cv2.setTrackbarPos("Saturation_min", window_name, ip.color_param["s_min"])
+					cv2.setTrackbarPos("Saturation_max", window_name, ip.color_param["s_max"])
+					cv2.setTrackbarPos("Value_min", window_name, ip.color_param["v_min"])
+					cv2.setTrackbarPos("Value_max", window_name, ip.color_param["v_max"])
+					load_mode = False
 			elif k == 27:
 				sys.exit()
 
