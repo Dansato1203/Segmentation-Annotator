@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw
 import numpy as np
 import glob
 
-class ColorBase_Annotator:
+class ColorExtraction:
 	def __init__(self):
 		self.color_mode = "none"
 		self.color_param = {"h_min": 0, "h_max": 180, "s_min": 0, "s_max": 255, "v_min": 0, "v_max": 255}
