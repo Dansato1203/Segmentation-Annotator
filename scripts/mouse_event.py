@@ -1,5 +1,4 @@
-import cv2
-
+#! /usr/bin/env python3
 import cv2
 
 class MouseEvent:
