@@ -56,3 +56,14 @@ class ColorExtraction:
 		self.extraction_img = cv2.bitwise_and(img, img, mask=img_mask)
 		return self.extraction_img
 
+	def save_color(self, key):
+		self.saved_colors[key] = self.color_param.copy()
+		print(f"Color parameters saved to key {key}")
+
+	def load_color(self, key):
+		if key in self.saved_colors:
+			self.color_param = self.saved_colors[key]
+			print(f"Loaded color parameters from key {key}")
+		else:
+			print(f"No color parameters saved for key {key}")
+
