@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-class SegmentationTool:
+class MagicWand:
 	def __init__(self, image_path):
 		# 画像を読み込む
 		self.img = cv2.imread(image_path, cv2.IMREAD_COLOR)
