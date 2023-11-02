@@ -1,12 +1,17 @@
+#! /user/bin/env python3
+import os
 import cv2
 import numpy as np
 
 class MagicWand:
-	def __init__(self, image_path):
+	def __init__(self, file_num, image_path):
 		# 画像を読み込む
-		self.img = cv2.imread(image_path, cv2.IMREAD_COLOR)
+		self.image_path = image_path
+		self.img = cv2.imread(self.image_path, cv2.IMREAD_COLOR)
 		# セグメンテーション結果を保存する変数を初期化
 		self.segmented = np.zeros_like(self.img)
+
+		self.file_number = file_num
 
 	def extract_similar_color(self, seed_point, radius=5, threshold=30):
 		# 半径5の円型のマスクを作成
@@ -46,6 +51,21 @@ class MagicWand:
 				self.segmented = cv2.bitwise_and(self.segmented, self.segmented, mask=mask_inv)
 				cv2.imshow("Segmented Image", self.segmented)
 
+	#TODO : 他のモジュールと共通しているので統一する
+	def save_image(self, img_path):
+		# パスを分割
+		directory_path , file_name = os.path.split(img_path)
+		img_name, _ = os.path.splitext(file_name)
+
+		# ラベル用のディレクトリを作成
+		label_directory = os.path.join(directory_path, 'labels')
+		if not os.path.exists(label_directory):
+			os.mkdir(label_directory)
+
+		annotate_img_name = os.path.join(label_directory, (img_name + '_label.png'))
+		print(annotate_img_name)
+		cv2.imwrite(annotate_img_name, self.segmented)
+
 	def run(self):
 		cv2.namedWindow("Original Image")
 		cv2.namedWindow("Segmented Image")
@@ -61,6 +81,14 @@ class MagicWand:
 		# ESCキーが押されるまで待機
 		while True:
 			key = cv2.waitKey(1) & 0xFF
+			if key == ord('n'):
+				self.file_number = self.file_number+1
+				self.save_image(self.image_path)
+				break
+			elif key == ord('b'):
+				self.file_number = self.file_number-1
+				self.save_image(self.image_path)
+				break
 			if key == 27:
 				break
 
