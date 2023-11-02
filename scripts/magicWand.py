@@ -4,13 +4,14 @@ import cv2
 import numpy as np
 
 class MagicWand:
-	def __init__(self, file_num, image_path):
+	def __init__(self, mode, file_num, image_path):
 		# 画像を読み込む
 		self.image_path = image_path
 		self.img = cv2.imread(self.image_path, cv2.IMREAD_COLOR)
 		# セグメンテーション結果を保存する変数を初期化
 		self.segmented = np.zeros_like(self.img)
 
+		self.mode = mode
 		self.file_number = file_num
 
 	def extract_similar_color(self, seed_point, radius=5, threshold=30):
@@ -89,7 +90,10 @@ class MagicWand:
 				self.file_number = self.file_number-1
 				self.save_image(self.image_path)
 				break
-			if key == 27:
+			elif key == ord('m'):
+				self.mode = True
+				break
+			elif key == 27:
 				break
 
 		cv2.destroyAllWindows()

@@ -7,7 +7,7 @@ import numpy as np
 import glob
 
 class ColorExtraction:
-	def __init__(self, file_num):
+	def __init__(self, mode, file_num):
 		self.color_mode = "none"
 		self.color_param = {"h_min": 0, "h_max": 180, "s_min": 0, "s_max": 255, "v_min": 0, "v_max": 255}
 		self.colors = {"none": self.color_param}
@@ -17,6 +17,7 @@ class ColorExtraction:
 		self.click_points = []
 		self.circle_rad = []
 		self.rad = 10
+		self.mode = mode
 		self.file_number = file_num
 
 
@@ -167,6 +168,9 @@ class ColorExtraction:
 					cv2.setTrackbarPos("Value_min", self.window_name, self.color_param["v_min"])
 					cv2.setTrackbarPos("Value_max", self.window_name, self.color_param["v_max"])
 					load_mode = False
+			elif key == ord('m'):
+				self.mode = False
+				break
 			elif key == 27:  # ESC key
 				break
 
