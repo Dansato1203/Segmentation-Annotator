@@ -103,6 +103,7 @@ class ColorExtraction:
 		elif event == cv2.EVENT_RBUTTONDOWN:
 			self.reset_drawing(self.img, self.extract_img, x, y, 10)
 
+	# TODO : magicWand.pyのコンストラクタと実装を統一する
 	def run(self, img_path):
 		self.img = cv2.imread(img_path)
 		self.hsv_img = cv2.cvtColor(self.img, cv2.COLOR_BGR2HSV)
