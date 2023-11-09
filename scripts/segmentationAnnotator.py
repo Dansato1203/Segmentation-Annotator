@@ -1,3 +1,4 @@
+import os
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 class SegmentationAnnotator(QtWidgets.QMainWindow):
@@ -64,17 +65,49 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
         self.next_button.clicked.connect(self.next_image)
         self.prev_button.clicked.connect(self.prev_image)
 
+        
+        # 画像リスト
+        self.image_list = []
+        self.current_image_index = 0
+
+        # ディレクトリ選択ダイアログを表示
+        self.select_directory()
+
     def next_image(self):
         # 次の画像に切り替える処理
-        pass
+        if self.image_list and self.current_image_index < len(self.image_list) - 1:
+            self.current_image_index += 1
+            self.display_images()
 
     def prev_image(self):
         # 前の画像に切り替える処理
-        pass
+        if self.image_list and self.current_image_index > 0:
+            self.current_image_index -= 1
+            self.display_images()
 
     def select_label(self, label):
         # ラベル選択時の処理
         print(f"Selected Label: {label}")
+
+    def select_directory(self):
+        # ディレクトリ選択ダイアログを表示
+        directory = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Image Directory")
+        if directory:
+            # ディレクトリから画像ファイルのリストを取得
+            self.image_list = [os.path.join(directory, f) for f in os.listdir(directory) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+            self.image_list.sort()  # ファイル名でソート
+            self.display_images()
+
+    def display_images(self):
+        # 最初の画像を表示
+        if self.image_list:
+            original_image = QtGui.QPixmap(self.image_list[self.current_image_index])
+            self.original_image_label.setPixmap(original_image.scaled(self.original_image_label.size(), QtCore.Qt.KeepAspectRatio))
+
+            # 右側に黒い画像を表示
+            black_image = QtGui.QPixmap(self.original_image_label.size())
+            black_image.fill(QtCore.Qt.black)
+            self.processed_image_label.setPixmap(black_image)
 
 if __name__ == '__main__':
     import sys
