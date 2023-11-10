@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 
 from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QImage
 from PyQt5.QtGui import QPixmap
 
@@ -166,18 +167,29 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
     
         # 座標を変換
         image_x, image_y = self.widget_to_image_coordinates(widget_x, widget_y, image_width, image_height)  
-  
-        # MagicWandの処理を実行
-        if self.magic_wand:
-            self.magic_wand.run(cv2.EVENT_LBUTTONDOWN, image_x, image_y)
-            # 処理後の画像を表示
-            self.update_processed_image()
+        
+        if event.button() == Qt.LeftButton:
+             # MagicWandの処理を実行
+             if self.magic_wand:
+                 self.magic_wand.run(image_x, image_y)
+                 # 処理後の画像を表示
+                 self.update_processed_image()
+        elif event.button() == Qt.RightButton:
+              if self.magic_wand:
+                 self.magic_wand.remove_color((image_x, image_y))
+                 self.update_processed_image()
 
     def update_processed_image(self):
         # 処理後の画像をQPixmapに変換して表示
         result_cv_img = self.magic_wand.segmented
         result_qpixmap = self.cvimg_to_qpixmap(result_cv_img)
         self.processed_image_label.setPixmap(result_qpixmap.scaled(self.original_image_label.size(), QtCore.Qt.KeepAspectRatio))
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_U:
+            print("1")
+            self.magic_wand.undo_last_change()
+            self.update_processed_image()
 
     def display_images(self):
         # 最初の画像を表示
