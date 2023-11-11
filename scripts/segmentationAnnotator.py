@@ -9,6 +9,8 @@ from PyQt5.QtGui import QPixmap
 
 from magicWand import MagicWand
 
+from segmentation_utils import remove_segment_at_point
+
 class SegmentationAnnotator(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
@@ -83,8 +85,12 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
         # ディレクトリ選択ダイアログを表示
         self.select_directory()
 
-        # 画像表示用ウィジェットにマウスイベントを追加
-        self.original_image_label.mousePressEvent = self.on_mouse_press
+        # original_image_labelウィジェットにマウスイベントを追加
+        self.original_image_label.mousePressEvent = self.on_original_image_mouse_press
+
+        # processed_image_labelにマウスイベントを追加
+        self.processed_image_label.mousePressEvent = self.on_processed_image_mouse_press
+        self.processed_image_label.mouseMoveEvent = self.on_processed_image_mouse_move
 
     def next_image(self):
         # 次の画像に切り替える処理
@@ -156,7 +162,7 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
 
         return image_x, image_y
 
-    def on_mouse_press(self, event):
+    def on_original_image_mouse_press(self, event):
         # マウスクリック位置を取得
         widget_x = event.pos().x()
         widget_y = event.pos().y()
@@ -179,17 +185,48 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
                  self.magic_wand.remove_color((image_x, image_y))
                  self.update_processed_image()
 
+    def on_processed_image_mouse_press(self, event):
+        # マウスクリック位置を取得
+        widget_x = event.pos().x()
+        widget_y = event.pos().y()
+
+        # 画像のサイズを取得
+        image_width = self.cv_img.shape[1]
+        image_height = self.cv_img.shape[0]
+    
+        # 座標を変換
+        image_x, image_y = self.widget_to_image_coordinates(widget_x, widget_y, image_width, image_height)  
+        # セグメントの削除処理を実行
+        self.magic_wand.segmented = remove_segment_at_point(self.magic_wand.segmented, (image_x, image_y))
+        # 画像を更新
+        self.update_processed_image()
+
+    def on_processed_image_mouse_move(self, event):
+        # マウスクリック位置を取得
+        widget_x = event.pos().x()
+        widget_y = event.pos().y()
+
+        # 画像のサイズを取得
+        image_width = self.cv_img.shape[1]
+        image_height = self.cv_img.shape[0]
+    
+        # 座標を変換
+        image_x, image_y = self.widget_to_image_coordinates(widget_x, widget_y, image_width, image_height)  
+        # セグメントの削除処理を実行
+        self.magic_wand.segmented = remove_segment_at_point(self.magic_wand.segmented, (image_x, image_y))
+        # 画像を更新
+        self.update_processed_image()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_U:
+            self.magic_wand.undo_last_change()
+            self.update_processed_image()
+
     def update_processed_image(self):
         # 処理後の画像をQPixmapに変換して表示
         result_cv_img = self.magic_wand.segmented
         result_qpixmap = self.cvimg_to_qpixmap(result_cv_img)
         self.processed_image_label.setPixmap(result_qpixmap.scaled(self.original_image_label.size(), QtCore.Qt.KeepAspectRatio))
-
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_U:
-            print("1")
-            self.magic_wand.undo_last_change()
-            self.update_processed_image()
 
     def display_images(self):
         # 最初の画像を表示
