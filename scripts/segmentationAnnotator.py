@@ -260,9 +260,13 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
             self.magic_wand.undo_last_change()
             self.update_processed_image()
         elif event.key() == Qt.Key_D:
-            self.processed_image_label.setMouseTracking(False) 
-            self.mouse_mode = "delete"  # 削除モードに切り替え
-        elif event.key() == (Qt.Key_P, Qt.Key_D):
+            if self.mouse_mode != "delete":
+                self.processed_image_label.setMouseTracking(False) 
+                self.mouse_mode = "delete"  # 削除モードに切り替え
+            else:
+                self.processed_image_label.setMouseTracking(True)
+                self.mouse_mode = "preview"  # プレビューモードに切り替え
+        elif event.key() == Qt.Key_P or event.key() == Qt.Key_D:
             self.processed_image_label.setMouseTracking(True) 
             self.mouse_mode = "preview"  # プレビューモードに切り替え
 
