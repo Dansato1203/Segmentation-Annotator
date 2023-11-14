@@ -20,6 +20,14 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
 
         self.magic_wand = MagicWand()
 
+        self.radius = 5
+        self.min_radius = 1
+        self.max_radius = 100
+
+        self.mouse_mode = "preview"
+        self.original_preview_image = None
+        self.processed_preview_image = None
+
         self.central_widget = QtWidgets.QWidget()  # 中央のウィジェット
         self.setCentralWidget(self.central_widget)
 
@@ -90,6 +98,11 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
 
         # processed_image_labelにマウスイベントを追加
         self.processed_image_label.mousePressEvent = self.on_processed_image_mouse_press
+
+        self.original_image_label.setMouseTracking(True)
+        self.processed_image_label.setMouseTracking(True)
+
+        self.original_image_label.mouseMoveEvent = self.on_original_image_mouse_move
         self.processed_image_label.mouseMoveEvent = self.on_processed_image_mouse_move
 
     def next_image(self):
@@ -177,31 +190,30 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
         if event.button() == Qt.LeftButton:
              # MagicWandの処理を実行
              if self.magic_wand:
-                 self.magic_wand.run(image_x, image_y)
+                 self.magic_wand.run(image_x, image_y, radius=self.radius)
                  # 処理後の画像を表示
                  self.update_processed_image()
         elif event.button() == Qt.RightButton:
               if self.magic_wand:
-                 self.magic_wand.remove_color((image_x, image_y))
+                 self.magic_wand.remove_color((image_x, image_y), radius=self.radius)
                  self.update_processed_image()
 
     def on_processed_image_mouse_press(self, event):
-        # マウスクリック位置を取得
-        widget_x = event.pos().x()
-        widget_y = event.pos().y()
+        if self.mouse_mode == "delete":
+            self.delete_point(event)
 
-        # 画像のサイズを取得
-        image_width = self.cv_img.shape[1]
-        image_height = self.cv_img.shape[0]
-    
-        # 座標を変換
-        image_x, image_y = self.widget_to_image_coordinates(widget_x, widget_y, image_width, image_height)  
-        # セグメントの削除処理を実行
-        self.magic_wand.segmented = remove_segment_at_point(self.magic_wand.segmented, (image_x, image_y))
-        # 画像を更新
-        self.update_processed_image()
-
+    def on_original_image_mouse_move(self, event):
+        self.update_preview(event, self.original_image_label)
+        
     def on_processed_image_mouse_move(self, event):
+        if self.mouse_mode == "delete":
+            # 削除モードの処理
+            self.delete_point(event)
+        elif self.mouse_mode == "preview":
+            # プレビューモードの処理
+            self.update_preview(event, self.processed_image_label)
+
+    def delete_point(self, event):
         # マウスクリック位置を取得
         widget_x = event.pos().x()
         widget_y = event.pos().y()
@@ -213,14 +225,54 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
         # 座標を変換
         image_x, image_y = self.widget_to_image_coordinates(widget_x, widget_y, image_width, image_height)  
         # セグメントの削除処理を実行
-        self.magic_wand.segmented = remove_segment_at_point(self.magic_wand.segmented, (image_x, image_y))
+        self.magic_wand.segmented = remove_segment_at_point(self.magic_wand.segmented, (image_x, image_y), radius=self.radius)
         # 画像を更新
         self.update_processed_image()
+
+    def update_preview(self, event, label_widget):
+        # マウスクリック位置を取得
+        widget_x = event.pos().x()
+        widget_y = event.pos().y()
+
+        # 画像のサイズを取得
+        image_width = self.cv_img.shape[1]
+        image_height = self.cv_img.shape[0]
+        
+        # 座標を変換
+        image_x, image_y = self.widget_to_image_coordinates(widget_x, widget_y, image_width, image_height)  
+
+        if label_widget == self.original_image_label:
+            self.original_preview_image = self.qpixmap_to_cvimg(self.original_image.copy())
+            cv2.circle(self.original_preview_image, (image_x, image_y), self.radius, (255, 0, 0), 1)
+            self.update_displayed_image(self.original_preview_image, self.original_image_label)
+        elif label_widget == self.processed_image_label:
+            self.processed_preview_image = self.magic_wand.segmented.copy()
+            cv2.circle(self.processed_preview_image, (image_x, image_y), self.radius, (255, 0, 0), 1)
+            self.update_displayed_image(self.processed_preview_image, self.processed_image_label)
+
+    def update_displayed_image(self, image, label_widget):
+        # 画像をQPixmapに変換して表示
+        qpixmap = self.cvimg_to_qpixmap(image)
+        label_widget.setPixmap(qpixmap.scaled(label_widget.size(), QtCore.Qt.KeepAspectRatio))
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_U:
             self.magic_wand.undo_last_change()
             self.update_processed_image()
+        elif event.key() == Qt.Key_D:
+            self.processed_image_label.setMouseTracking(False) 
+            self.mouse_mode = "delete"  # 削除モードに切り替え
+        elif event.key() == (Qt.Key_P, Qt.Key_D):
+            self.processed_image_label.setMouseTracking(True) 
+            self.mouse_mode = "preview"  # プレビューモードに切り替え
+
+    # マウスホイールイベントの処理
+    def wheelEvent(self, event):
+        delta = event.angleDelta().y()
+        if delta > 0:
+            self.radius = min(self.radius + 1, self.max_radius)
+        elif delta < 0:
+            self.radius = max(self.radius - 1, self.min_radius)
 
     def update_processed_image(self):
         # 処理後の画像をQPixmapに変換して表示
@@ -231,11 +283,11 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
     def display_images(self):
         # 最初の画像を表示
         if self.image_list:
-            original_image = QtGui.QPixmap(self.image_list[self.current_image_index])
-            self.original_image_label.setPixmap(original_image.scaled(self.original_image_label.size(), QtCore.Qt.KeepAspectRatio))
+            self.original_image = QtGui.QPixmap(self.image_list[self.current_image_index])
+            self.original_image_label.setPixmap(self.original_image.scaled(self.original_image_label.size(), QtCore.Qt.KeepAspectRatio))
 
             # 右側に処理後の画像を表示
-            self.cv_img = self.qpixmap_to_cvimg(original_image)
+            self.cv_img = self.qpixmap_to_cvimg(self.original_image)
             self.magic_wand.preparation(self.cv_img)
 
 if __name__ == '__main__':

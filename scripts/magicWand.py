@@ -73,8 +73,8 @@ class MagicWand:
 			self.color_ranges.pop()  # 最後の変更を削除
 			self.apply_color_ranges()  # 残りの履歴を再適用
 
-	def run(self, x, y):
-		mask = self.extract_similar_color((x, y))
+	def run(self, x, y, radius):
+		mask = self.extract_similar_color((x, y), radius=radius)
 		extracted_region = cv2.bitwise_and(self.img, self.img, mask=mask)
 		self.segmented = cv2.bitwise_or(self.segmented, extracted_region)
 
