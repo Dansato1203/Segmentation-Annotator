@@ -4,13 +4,14 @@ import cv2
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap, QPainter, QColor
 from PyQt5.QtGui import QImage
 from PyQt5.QtGui import QPixmap
 
 from magicWand import MagicWand
 
-from segmentation_utils import remove_segment_at_point
-from segmentation_utils import save_processed_image
+from utilityFunctions import remove_segment_at_point
+from utilityFunctions import save_processed_image
 
 class SegmentationAnnotator(QtWidgets.QMainWindow):
     def __init__(self):
@@ -107,6 +108,7 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
 
     def next_image(self):
         save_processed_image(self.image_list[self.current_image_index], self.magic_wand.segmented)
+        self.magic_wand.save_color_ranges_to_json('color_ranges_history.json')
         # 次の画像に切り替える処理
         if self.image_list and self.current_image_index < len(self.image_list) - 1:
             self.current_image_index += 1
@@ -116,6 +118,7 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
 
     def prev_image(self):
         save_processed_image(self.image_list[self.current_image_index], self.magic_wand.segmented)
+        self.magic_wand.save_color_ranges_to_json('color_ranges_history.json')
         # 前の画像に切り替える処理
         if self.image_list and self.current_image_index > 0:
             self.current_image_index -= 1
@@ -272,6 +275,14 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
         elif event.key() == Qt.Key_P or event.key() == Qt.Key_D:
             self.processed_image_label.setMouseTracking(True) 
             self.mouse_mode = "preview"  # プレビューモードに切り替え
+        elif event.key() == Qt.Key_L:
+            # JSONファイルから色範囲の履歴を読み込む
+            self.magic_wand.load_color_ranges_from_json('color_ranges_history.json')
+            self.magic_wand.apply_color_ranges()
+            self.update_processed_image()
+        elif event.key() == Qt.Key_R:
+            # JSONファイルを空にする
+            self.magic_wand.clear_json('color_ranges_history.json')
 
     # マウスホイールイベントの処理
     def wheelEvent(self, event):
@@ -303,11 +314,12 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
             #    self.cv_img = cv2.imread(label_path)
             #    self.magic_wand.preparation(self.cv_img, True)
             #else:
-                # ラベル画像が存在しない場合は通常の画像を読み込む
-                # 右側に処理後の画像を表示
+
             self.cv_img = self.qpixmap_to_cvimg(self.original_image)
             self.magic_wand.preparation(self.cv_img, False)
-            self.update_displayed_image(self.cv_img, self.processed_image_label)
+
+            init_processed_image = np.zeros(self.cv_img.shape, dtype=np.uint8)
+            self.update_displayed_image(init_processed_image, self.processed_image_label)
 
 if __name__ == '__main__':
     import sys

@@ -2,6 +2,7 @@
 import os
 import cv2
 import numpy as np
+import json
 
 class MagicWand:
 	def __init__(self):
@@ -75,6 +76,21 @@ class MagicWand:
 			self.segmented = np.zeros_like(self.img)
 			self.color_ranges.pop()  # 最後の変更を削除
 			self.apply_color_ranges()  # 残りの履歴を再適用
+
+	def save_color_ranges_to_json(self, json_file):
+		converted_list = [[color_range_part.tolist() for color_range_part in color_range] for color_range in self.color_ranges]
+
+		with open(json_file, 'w') as file:
+			json.dump(converted_list, file)
+
+	def load_color_ranges_from_json(self, json_file):
+		with open(json_file, 'r') as file:
+			data = json.load(file)
+			self.color_ranges = [[np.array(color_range_part) for color_range_part in color_range] for color_range in data]
+
+	def clear_json(self, json_file):
+		with open(json_file, 'w') as file:
+			json.dump([], file)
 
 	def run(self, x, y, radius):
 		mask = self.extract_similar_color((x, y), radius=radius)
