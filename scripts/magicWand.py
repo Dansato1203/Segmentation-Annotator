@@ -7,9 +7,12 @@ class MagicWand:
 	def __init__(self):
 		self.color_ranges = []
 
-	def preparation(self, image_data):
+	def preparation(self, image_data, imageExists):
 		# 画像を読み込む
 		self.img = image_data
+		#if imageExists:
+		#	self.segmented = self.img
+		#else:
 		# セグメンテーション結果を保存する変数を初期化
 		self.segmented = np.zeros_like(self.img)
 

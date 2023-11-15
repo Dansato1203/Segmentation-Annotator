@@ -10,6 +10,7 @@ from PyQt5.QtGui import QPixmap
 from magicWand import MagicWand
 
 from segmentation_utils import remove_segment_at_point
+from segmentation_utils import save_processed_image
 
 class SegmentationAnnotator(QtWidgets.QMainWindow):
     def __init__(self):
@@ -84,7 +85,6 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
         # ボタンのシグナルをスロットに接続
         self.next_button.clicked.connect(self.next_image)
         self.prev_button.clicked.connect(self.prev_image)
-
         
         # 画像リスト
         self.image_list = []
@@ -106,19 +106,22 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
         self.processed_image_label.mouseMoveEvent = self.on_processed_image_mouse_move
 
     def next_image(self):
+        save_processed_image(self.image_list[self.current_image_index], self.magic_wand.segmented)
         # 次の画像に切り替える処理
         if self.image_list and self.current_image_index < len(self.image_list) - 1:
             self.current_image_index += 1
             self.display_images()
-            #self.magic_wand.update_update_color_range(self.magic_wand.)
             self.magic_wand.apply_color_ranges()
             self.update_processed_image()
 
     def prev_image(self):
+        save_processed_image(self.image_list[self.current_image_index], self.magic_wand.segmented)
         # 前の画像に切り替える処理
         if self.image_list and self.current_image_index > 0:
             self.current_image_index -= 1
             self.display_images()
+            self.magic_wand.apply_color_ranges()
+            self.update_processed_image()
 
     def select_label(self, label):
         # ラベル選択時の処理
@@ -290,9 +293,21 @@ class SegmentationAnnotator(QtWidgets.QMainWindow):
             self.original_image = QtGui.QPixmap(self.image_list[self.current_image_index])
             self.original_image_label.setPixmap(self.original_image.scaled(self.original_image_label.size(), QtCore.Qt.KeepAspectRatio))
 
-            # 右側に処理後の画像を表示
+            # labelsディレクトリ内のファイルをチェック
+            #label_dir = os.path.join(os.path.dirname(self.image_list[self.current_image_index]), 'labels')
+            #base_name = os.path.splitext(os.path.basename(self.image_list[self.current_image_index]))[0]
+            #label_path = os.path.join(label_dir, f"{base_name}_label.png")
+            #if os.path.exists(label_path):
+                # ラベル画像が存在する場合はそれを読み込む
+                # 右側に処理後の画像を表示
+            #    self.cv_img = cv2.imread(label_path)
+            #    self.magic_wand.preparation(self.cv_img, True)
+            #else:
+                # ラベル画像が存在しない場合は通常の画像を読み込む
+                # 右側に処理後の画像を表示
             self.cv_img = self.qpixmap_to_cvimg(self.original_image)
-            self.magic_wand.preparation(self.cv_img)
+            self.magic_wand.preparation(self.cv_img, False)
+            self.update_displayed_image(self.cv_img, self.processed_image_label)
 
 if __name__ == '__main__':
     import sys
