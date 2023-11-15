@@ -8,6 +8,7 @@ RUN apt-get update -yqq \
 	ca-certificates \
 	python3 \
 	python3-pip \
+	python3-pyqt5 \
 	libglib2.0-0 \
 	mesa-common-dev  \
 	libglu1-mesa-dev \
